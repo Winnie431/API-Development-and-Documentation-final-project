@@ -3,8 +3,10 @@ from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 
-database_name = 'trivia'
-database_path = 'postgresql://{}/{}'.format('localhost:5432', database_name)
+database_name = "trivia"
+database_path = "postgresql://{}:{}@{}/{}".format(
+    "postgres", "postgres", "localhost:5433", database_name
+)
 
 db = SQLAlchemy()
 
@@ -14,7 +16,7 @@ setup_db(app)
 """
 def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    #app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
     db.create_all()
@@ -29,16 +31,17 @@ class Question(db.Model):
     id = Column(Integer, primary_key=True)
     question = Column(String)
     answer = Column(String)
-    category = Column(String)
     difficulty = Column(Integer)
+    category = Column(String)
 
     def __init__(self, question, answer, category, difficulty):
         self.question = question
         self.answer = answer
-        self.category = category
         self.difficulty = difficulty
+        self.category = category
 
     def insert(self):
+        
         db.session.add(self)
         db.session.commit()
 
@@ -76,3 +79,7 @@ class Category(db.Model):
             'id': self.id,
             'type': self.type
             }
+    def insert(self):
+        
+        db.session.add(self)
+        db.session.commit()

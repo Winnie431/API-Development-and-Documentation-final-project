@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import $ from 'jquery';
 import '../stylesheets/QuizView.css';
+import { isEmpty } from 'lodash';
 
 const questionsPerPlay = 5;
 
@@ -11,7 +12,7 @@ class QuizView extends Component {
       quizCategory: null,
       previousQuestions: [],
       showAnswer: false,
-      categories: {},
+      categories: [],
       numCorrect: 0,
       currentQuestion: {},
       guess: '',
@@ -107,7 +108,28 @@ class QuizView extends Component {
           <div className='play-category' onClick={this.selectCategory}>
             ALL
           </div>
-          {Object.keys(this.state.categories).map((id) => {
+
+          {
+                !isEmpty(this.state.categories)
+                ?this.state.categories.map((category,id) => 
+                (
+                  <div
+                key={category.id}
+                value={category.id}
+                className='play-category'
+                onClick={() =>
+                  this.selectCategory({ type: this.state.categories[category.id], id })
+                }
+              >
+                
+                {category.type}
+                </div>
+             
+                )
+              )
+                :null
+              }
+          {/* {Object.keys(this.state.categories).map((id) => {
             return (
               <div
                 key={id}
@@ -120,7 +142,7 @@ class QuizView extends Component {
                 {this.state.categories[id]}
               </div>
             );
-          })}
+          })} */}
         </div>
       </div>
     );

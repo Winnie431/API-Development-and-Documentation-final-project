@@ -3,6 +3,7 @@ import '../stylesheets/App.css';
 import Question from './Question';
 import Search from './Search';
 import $ from 'jquery';
+import { isEmpty } from 'lodash';
 
 class QuestionView extends Component {
   constructor() {
@@ -11,7 +12,7 @@ class QuestionView extends Component {
       questions: [],
       page: 1,
       totalQuestions: 0,
-      categories: {},
+      categories: [],
       currentCategory: null,
     };
   }
@@ -34,7 +35,7 @@ class QuestionView extends Component {
         return;
       },
       error: (error) => {
-        alert('Unable to load questions. Please try your request again');
+        alert('Unable to load questions. Please try your request again to solve the problem');
         return;
       },
     });
@@ -84,7 +85,7 @@ class QuestionView extends Component {
 
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/questions`, //TODO: update request URL
+      url: `/questions/search`, //TODO: update request URL
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
@@ -102,7 +103,7 @@ class QuestionView extends Component {
         return;
       },
       error: (error) => {
-        alert('Unable to load questions. Please try your request again');
+        alert('Unable to load  search questions. Please try your request again');
         return;
       },
     });
@@ -138,21 +139,48 @@ class QuestionView extends Component {
             Categories
           </h2>
           <ul>
-            {Object.keys(this.state.categories).map((id) => (
+              {/* {console.log(this.state.categories)}
+              {console.log(this.state.categories.length)}
+              {console.log(typeof this.state.categories)} */}
+
+              {
+                !isEmpty(this.state.categories)
+                ?this.state.categories.map((category) => 
+                (
+                  <li key={category.id} onClick={() => {
+                  this.getByCategory(category.id);
+                }}
+              >
+                {category.type}
+                <img
+                  className='category'
+                  // alt={`${category}`}
+                  // src={`${category}.svg`}
+                />
+              </li>
+                )
+              )
+                :null
+              }
+              
+
+
+              
+            {/* {Object.keys(this.state.categories).map((id) => (
               <li
                 key={id}
                 onClick={() => {
                   this.getByCategory(id);
                 }}
               >
-                {this.state.categories[id]}
-                <img
+                {this.state.categories[id]} */}
+                {/* <img
                   className='category'
                   alt={`${this.state.categories[id].toLowerCase()}`}
                   src={`${this.state.categories[id].toLowerCase()}.svg`}
-                />
-              </li>
-            ))}
+                /> */}
+              {/* </li>
+            ))} */}
           </ul>
           <Search submitSearch={this.submitSearch} />
         </div>

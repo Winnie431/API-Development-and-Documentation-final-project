@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { isEmpty } from 'lodash';
 import $ from 'jquery';
 import '../stylesheets/FormView.css';
 
@@ -10,7 +11,7 @@ class FormView extends Component {
       answer: '',
       difficulty: 1,
       category: 1,
-      categories: {},
+      categories: [],
     };
   }
 
@@ -23,7 +24,7 @@ class FormView extends Component {
         return;
       },
       error: (error) => {
-        alert('Unable to load categories. Please try your request again');
+        alert('Unable to load categories. Please try your request again later');
         return;
       },
     });
@@ -51,7 +52,7 @@ class FormView extends Component {
         return;
       },
       error: (error) => {
-        alert('Unable to add question. Please try your request again');
+        alert('Unable to add question. Please try your request again submitting');
         return;
       },
     });
@@ -91,13 +92,21 @@ class FormView extends Component {
           <label>
             Category
             <select name='category' onChange={this.handleChange}>
-              {Object.keys(this.state.categories).map((id) => {
-                return (
-                  <option key={id} value={id}>
-                    {this.state.categories[id]}
+              {/* {console.log(this.state.categories)}
+              {console.log(this.state.categories.length)}
+              {console.log(typeof this.state.categories)} */}
+              {
+                !isEmpty(this.state.categories)
+                ?this.state.categories.map((category) => 
+                (
+                  <option key={category.id} value={category.id}>
+                    {category.type}
+
                   </option>
-                );
-              })}
+                )
+              )
+                :null
+              }
             </select>
           </label>
           <input type='submit' className='button' value='Submit' />
