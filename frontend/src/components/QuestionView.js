@@ -154,8 +154,8 @@ class QuestionView extends Component {
                 {category.type}
                 <img
                   className='category'
-                  // alt={`${category}`}
-                  // src={`${category}.svg`}
+                  alt={`${category.type || "".toLowerCase()}`}
+                  src={`${category.type || "".toLowerCase()}.svg`}
                 />
               </li>
                 )
@@ -194,6 +194,7 @@ class QuestionView extends Component {
               category={this.state.categories[q.category]}
               difficulty={q.difficulty}
               questionAction={this.questionAction(q.id)}
+              categoryImage={this.state.categories[q.category.type]}
             />
           ))}
           <div className='pagination-menu'>{this.createPagination()}</div>

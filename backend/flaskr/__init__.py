@@ -1,8 +1,10 @@
 import os
+from tkinter.messagebox import QUESTION
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
+from sqlalchemy import cast, String
 
 from models import setup_db, Question, Category
 
@@ -152,9 +154,9 @@ def create_app(test_config=None):
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
     """
-    @app.route('/questions', methods = ['POST'])
+    @app.route("/questions", methods=["POST"])
     def create_question():      
-        # try:         
+         try:         
             body= request.get_json()
            
             #initially we set the values if they does not exist to none
@@ -185,8 +187,8 @@ def create_app(test_config=None):
                     "current_category": current_questions,
                     "categories":category     
             })            
-        # except:
-        #     abort(422)
+         except:
+            abort(422)
 
     """
     @TODO:
@@ -203,7 +205,7 @@ def create_app(test_config=None):
         body= request.get_json()
      
         search = body.get('searchTerm',None)
-        print(f'search input ',body)
+        # print(f'search input ',body)
         try:
             selection = Question.query.filter(Question.question.ilike(f'%{search}%'))
 
@@ -227,32 +229,27 @@ def create_app(test_config=None):
     category to be shown.
     """
 
-    # @app.route("/categories/<int:category_id>/questions")
-    # def categories_questions(category_id):
-    #     try:
-            # categories= Category.query.order_by(Category.id).all()
-#             categoryType = Category.query.filter(Category.category == category_id).one_or_none()
-# 
-#             print(f'selected category',categoryType)
-# 
-#             selection = Question.query.filter(Question.category == categoryType).all()
-#             selection = Question.query.filter(Question.category == category_id).all()
-#             current_questions = paginate(request, selection)
-# 
-#             if len(current_questions) == 0:
-#                 abort(404)
-# 
-#             return jsonify(
-#                 {
-#                     "success": True,
-#                     "questions": current_questions,
-#                     "total_questions": len(current_questions),
-#                     "current_category": current_questions,
-#                     
-#                 }
-#             )
-#         except:
-#             abort(404)
+    @app.route("/categories/<int:category_id>/questions", methods=["GET"])
+    def get_category_questions(category_id):
+        # try:
+            category = Category.query.filter(Category.id == category_id).one_or_none()
+            if category is None:
+                abort(404)
+  
+            selection = Question.query.filter(Question.category == cast (category_id,String)).limit(QUESTIONS_PER_PAGE).all()
+            # print(f'question per category ',selection)
+            questions = paginate(request,selection)
+            return jsonify(
+                    {
+                        "success": True,
+                        "questions": questions,
+                        "total_questions":len(questions),
+                        "current_category": category.type
+                        
+                    }
+                )
+        # except:
+        #     abort(404)
 
 
     """
@@ -266,6 +263,51 @@ def create_app(test_config=None):
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not.
     """
+    @app.route('/quizzes', methods=['POST'])
+    def play_quiz():
+        body= request.get_json()
+        questions = Question.query.all()
+        # user_category = body.get('quiz_category',None)
+        # previous_questions = body.get('previous_questions',None)
+
+        # if a user selects a given category (not "ALL") , get the category ID and 
+        # get the questions from Questions table and filter by Questions.category = id passed by the user
+        
+#         if (user_category['id']) != 0:
+#             questions = Question.query.filter(Question.category == user_category['id']).all()
+#             # print(f'questions from a particuler category',questions)
+# 
+#             #  creating a list to store the ids of all the questions fetched in the above query 
+#             available_questions_ids = [question.id for question in questions]
+# 
+#             # to generate random quiz questions, select a random question id from the available_ids above if the id is not in the list of  previous_questions ids         
+#             random_num = random.choice([number for number in available_questions_ids if number not in previous_questions]) 
+# 
+#             # after getting random id from list of question ids,  fetch the random question using the random id and category id 
+#             selection = Question.query.filter(Question.id == random_num).one_or_none()
+#             question = paginate(request, selection)
+# 
+#         if(user_category['id']) == 0:
+#             # first fetch all questions in your database irrespective of its category 
+#             all_questions = Question.query.order_by(Question.id).all()
+#             # create a list to store the ids of all the questions fetched in the above query
+#             available_questions_ids = [question.id for question in all_questions]
+# 
+#             #to generate a random question to send back, get a random question id 
+#             random_num = random.choice( [id for id in available_questions_ids if id not in previous_questions])
+# 
+#             # once you get a random question id fetch a question for a user to answer
+#             selection = Question.query.filter( Question.id == random_num).one_or_none()
+#             questions = paginate(request, selection)
+
+
+        return jsonify({
+
+                "success":True,
+                "questions": questions
+
+                })
+
 
     """
     @TODO:
