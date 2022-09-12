@@ -266,47 +266,37 @@ def create_app(test_config=None):
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
         body= request.get_json()
-        questions = Question.query.all()
-        # user_category = body.get('quiz_category',None)
-        # previous_questions = body.get('previous_questions',None)
-
-        # if a user selects a given category (not "ALL") , get the category ID and 
-        # get the questions from Questions table and filter by Questions.category = id passed by the user
         
-#         if (user_category['id']) != 0:
-#             questions = Question.query.filter(Question.category == user_category['id']).all()
-#             # print(f'questions from a particuler category',questions)
-# 
-#             #  creating a list to store the ids of all the questions fetched in the above query 
-#             available_questions_ids = [question.id for question in questions]
-# 
-#             # to generate random quiz questions, select a random question id from the available_ids above if the id is not in the list of  previous_questions ids         
-#             random_num = random.choice([number for number in available_questions_ids if number not in previous_questions]) 
-# 
-#             # after getting random id from list of question ids,  fetch the random question using the random id and category id 
-#             selection = Question.query.filter(Question.id == random_num).one_or_none()
-#             question = paginate(request, selection)
-# 
-#         if(user_category['id']) == 0:
-#             # first fetch all questions in your database irrespective of its category 
-#             all_questions = Question.query.order_by(Question.id).all()
-#             # create a list to store the ids of all the questions fetched in the above query
-#             available_questions_ids = [question.id for question in all_questions]
-# 
-#             #to generate a random question to send back, get a random question id 
-#             random_num = random.choice( [id for id in available_questions_ids if id not in previous_questions])
-# 
-#             # once you get a random question id fetch a question for a user to answer
-#             selection = Question.query.filter( Question.id == random_num).one_or_none()
-#             questions = paginate(request, selection)
+        quiz_category = body.get('quiz_category',None)
 
+        previous_questions = body.get('previous_questions',None)
 
-        return jsonify({
+        available_ids = []
 
-                "success":True,
-                "questions": questions
+        query =  Question.query
+        # we get the list of the selected category if they exist
+        if int(quiz_category['id'])!=0:
+            category = Category.query.filter(Category.id == quiz_category.get('id')).first()
 
-                })
+            if category is None:
+                abort(404)
+        # we query the questions based on the categories
+            query = query.filter(Question.category == cast(quiz_category['id'],String))
+
+        # we collect the questions which are not in the list of the previous questions
+        if previous_questions:
+            query= query.filter(Question.id.notin_(previous_questions))
+        # we get the questions randomly
+        question = query.order_by(db.func.random()).first()
+
+        return jsonify(
+                {
+                    'success': True,
+                    # ce return questions if the exist else we return an empty string
+                    'question': question.format() if question else ""
+                }
+            )
+
 
 
     """
