@@ -12,7 +12,7 @@ class QuestionView extends Component {
       questions: [],
       page: 1,
       totalQuestions: 0,
-      categories: [],
+      categories: {},
       currentCategory: null,
     };
   }
@@ -173,13 +173,13 @@ class QuestionView extends Component {
                   this.getByCategory(id);
                 }}
               >
-                {this.state.categories[id]} */}
-                {/* <img
+                {this.state.categories[id]} 
+                 <img
                   className='category'
-                  alt={`${this.state.categories[id].toLowerCase()}`}
-                  src={`${this.state.categories[id].toLowerCase()}.svg`}
-                /> */}
-              {/* </li>
+                  alt={`${this.state.categories[id] || "".toLowerCase()}`}
+                  src={`${this.state.categories[id] || "".toLowerCase()}.svg`}
+                />
+              </li>
             ))} */}
           </ul>
           <Search submitSearch={this.submitSearch} />
@@ -194,7 +194,7 @@ class QuestionView extends Component {
               category={this.state.categories[q.category]}
               difficulty={q.difficulty}
               questionAction={this.questionAction(q.id)}
-              categoryImage={this.state.categories[q.category.type]}
+              
             />
           ))}
           <div className='pagination-menu'>{this.createPagination()}</div>

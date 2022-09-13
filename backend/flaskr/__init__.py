@@ -50,7 +50,7 @@ def create_app(test_config=None):
     @app.route("/categories")
     def retrieve_categories():
         try:
-            categories= Category.query.order_by(Category.id).all()
+            categories= db.session.query(Category).order_by(Category.type).all()
             
             category = [category.format() for category in categories]
 
@@ -65,7 +65,6 @@ def create_app(test_config=None):
             )
         except:
             abort(404)
-
 
     """
     @TODO:
@@ -231,7 +230,7 @@ def create_app(test_config=None):
 
     @app.route("/categories/<int:category_id>/questions", methods=["GET"])
     def get_category_questions(category_id):
-        # try:
+        try:
             category = Category.query.filter(Category.id == category_id).one_or_none()
             if category is None:
                 abort(404)
@@ -248,8 +247,8 @@ def create_app(test_config=None):
                         
                     }
                 )
-        # except:
-        #     abort(404)
+        except:
+          abort(404)
 
 
     """
@@ -265,38 +264,37 @@ def create_app(test_config=None):
     """
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
-        body= request.get_json()
-        
-        quiz_category = body.get('quiz_category',None)
+        try:
+            body= request.get_json()
+            
+            quiz_category = body.get('quiz_category',None)
 
-        previous_questions = body.get('previous_questions',None)
+            previous_questions = body.get('previous_questions',None)
+            query =  Question.query
+            # we get the list of the selected category if they exist
+            if int(quiz_category['id'])!=0:
+                category = Category.query.filter(Category.id == quiz_category.get('id')).first()
 
-        available_ids = []
+                if category is None:
+                    abort(404)
+            # we query the questions based on the categories
+                query = query.filter(Question.category == cast(quiz_category['id'],String))
 
-        query =  Question.query
-        # we get the list of the selected category if they exist
-        if int(quiz_category['id'])!=0:
-            category = Category.query.filter(Category.id == quiz_category.get('id')).first()
+            # we collect the questions which are not in the list of the previous questions
+            if previous_questions:
+                query= query.filter(Question.id.notin_(previous_questions))
+            # we get the questions randomly
+            question = query.order_by(db.func.random()).first()
 
-            if category is None:
-                abort(404)
-        # we query the questions based on the categories
-            query = query.filter(Question.category == cast(quiz_category['id'],String))
-
-        # we collect the questions which are not in the list of the previous questions
-        if previous_questions:
-            query= query.filter(Question.id.notin_(previous_questions))
-        # we get the questions randomly
-        question = query.order_by(db.func.random()).first()
-
-        return jsonify(
-                {
-                    'success': True,
-                    # ce return questions if the exist else we return an empty string
-                    'question': question.format() if question else ""
-                }
-            )
-
+    #  return questions if the exist else we return an empty string
+            return jsonify(
+                    {
+                        'success': True,
+                        'question': question.format() if question else ""
+                    }
+                )
+        except:
+            abort(404)
 
 
     """

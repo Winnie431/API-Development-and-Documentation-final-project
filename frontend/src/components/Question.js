@@ -14,15 +14,15 @@ class Question extends Component {
   }
 
   render() {
-    const { question, answer, category, difficulty,categoryImage } = this.props;
+    const { question, answer, category, difficulty} = this.props;
     return (
       <div className='Question-holder'>
         <div className='Question'>{question}</div>
         <div className='Question-status'>
           <img
             className='category'
-            alt={`${categoryImage || "" .toLowerCase()}`}
-            src={`${categoryImage || "".toLowerCase()}.svg`}
+            alt={`${category || "".toLowerCase()}`}
+            src={`${category || "".toLowerCase()}.svg`}
           />
           <div className='difficulty'>Difficulty: {difficulty}</div>
           <img
