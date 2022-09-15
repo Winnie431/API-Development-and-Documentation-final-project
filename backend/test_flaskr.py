@@ -47,15 +47,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["success"],True)
         self.assertTrue(data["categories"])
 
-    def test_categories_does_not_exist(self):        
-        response = self.client().get("/categories")
-        data = json.loads(response.data)
-
-        self.assertEqual(response.status_code,404)
-        self.assertEqual(data["success"],False)
-        self.assertEqual(len(data["categories"]),0)
-        self.assertEqual(data["message"], "resource not found")
-
 
     def test_get_paginated_questions(self):
         response = self.client().get("/questions")
@@ -76,23 +67,25 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data["message"], "resource not found")
 
     def test_delete_question(self):
-        response = self.client().delete('/questions/1')
-        data = json.loads(response.data)    
-
+        question = {}
+        with self.app.app_context():
+            question = Question.query.first().format()
+        response = self.client().delete(f"/questions/{question['id']}")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(data['success'], True)
-        self.assertEqual(data['deleted'], 1)
-        self.assertTrue(data['total_questions'])
-        self.assertTrue(len(data['questions']))
+        with self.app.app_context():
+            quest = Question.query.filter(Question.id==question['id']).one_or_none()
+            self.assertIsNone(quest)
+
+    def test_404_delete_none_existing_question(self):
+        max_id = 100000
+        with self.app.app_context():
+            q = Question.query.order_by(Question.id.desc()).first()
+            if q:
+                max_id = q.id
+        response = self.client().delete(f"/questions/{max_id + 2}")
+        self.assertEqual(response.status_code, 404)
+
         
-
-    def test_delete_question_fails(self):
-        response = self.client().delete("/questions/500")
-        data = json.loads(response.data)
-
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "unprocessable")
 
     def test_create_new_question(self):
         response = self.client().post("/questions", json=self.new_question)
@@ -101,16 +94,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(response.status_code,200)
         self.assertEqual(data["success"],True)
         self.assertTrue(len(data["questions"]))
-        
-
-    def test_question_creation_fails(self):
-        response = self.client().post("/questions", json=self.new_question)
-        data = json.loads(response.data)
-
-        self.assertEqual(response.status_code,422)
-        self.assertEqual(data["success"],False)
-        self.assertEqual(data["message"], "unprocessable")
-      
+ 
     def test_get_question_search_with_results(self):
         response = self.client().post("/questions", json={"search": "what"})
         data = json.loads(response.data)
@@ -120,15 +104,13 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data["total_questions"])
        
 
-    def test_get_questions_search_without_results(self):
-        response = self.client().post("/questions", json={"search": "applejacks"})
-        data = json.loads(response.data)
+    def test_search_questions_with_no_response(self):
+        response = self.client().post('/questions/search', json={'search_term': 'applejack'})
+        result = json.loads(response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(result['questions'])
 
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(data["success"], False)
-        self.assertEqual(data["total_questions"], 0)
-        self.assertEqual(len(data["questions"]), 0)
-        self.assertEqual(data["message"], "resource not found")
+
 
     def test_get_paginated_categories_questions(self):
         response = self.client().get("/categories/1/questions")
